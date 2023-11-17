@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" href="index.js">
+</head>
+
+<body>
+    <div>
+        <div class="capa">
+          <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+              <a class="navbar-brand" href="#">El.Tio</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Inicio</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#">Biblioteca</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="tutoriales.html">Tutoriales</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link disabled" aria-disabled="true">Propiedad.Tio</a>
+                    
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+        </div>
+        </div>
+</body>
+
+<main>
+  <div class="container-">
+    <div class="header">
+      <h1>Chat Bot</h1>
+      <div class="avatar"></div>
+    </div>
+    <div class="display">
+    </div>
+    <div class="tray">
+      <form>
+        <i class="fa fa-envelope-open" aria-hidden="true"></i>
+        <div class="text">
+          <input placeholder="Say Something...."></input>
+        </div>
+        <i class="fa fa-paper-plane"></i>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="index.js"></script>
+
+
+    <h1>¡Bienvenido al Chat Bot!</h1>
+
+    <div id="chat-container">
+        <!-- Aquí se mostrarán los mensajes de conversación -->
+    </div>
+    <form id="user-input" onsubmit="sendMessage(event)">
+        <input type="text" id="user-message" placeholder="Escribe aquí...">
+        <button type="submit">Enviar</button>
+        <button type="button" id="reset-button" style="display: none;" onclick="resetChat()">Reiniciar Chat</button>
+    </form>
+    <script>
+        let warningCount = 0;
+        let banned = false;
+
+        function sendMessage(event) {
+            event.preventDefault();
+            if (banned) return;
+
+            let message = document.getElementById('user-message').value;
+            
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: message }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayMessage(message, 'user');
+                displayMessage(data.response, 'bot');
+                handleWarnings(data.warningCount);
+            })
+            .catch(error => console.error('Error:', error));
+            
+            document.getElementById('user-message').value = '';
+        }
+
+        function displayMessage(message, sender) {
+            let chatContainer = document.getElementById('chat-container');
+            let messageElement = document.createElement('div');
+            messageElement.classList.add(sender);
+
+            let messageText = document.createTextNode(message);
+            messageElement.appendChild(messageText);
+
+            chatContainer.appendChild(messageElement);
+        }
+
+        function handleWarnings(newWarningCount) {
+            warningCount = newWarningCount;
+            if (warningCount >= 3) {
+                banned = true;
+                document.getElementById('user-message').disabled = true;
+                document.querySelector('form button').disabled = true;
+                document.getElementById('reset-button').style.display = 'block';
+            }
+        }
+
+        function resetChat() {
+            banned = false;
+            warningCount = 0;
+            document.getElementById('user-message').disabled = false;
+            document.querySelector('form button').disabled = false;
+            document.getElementById('reset-button').style.display = 'none';
+            document.getElementById('chat-container').innerHTML = '';
+        }
+    </script>
+</main>
+</html>
